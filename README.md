@@ -1,5 +1,5 @@
 From my personal tooling ;<br>
-One of the main issue is to keep the strings inside the .text !
+One of the main issues is getting the strings not to be written to .rdata.<br>
 Tested with msvc toolchain
 
 ```powershell

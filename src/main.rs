@@ -10,6 +10,9 @@ use core::panic::PanicInfo;
 use core::ptr;
 
 mod intrinsics;
+mod utils;
+
+use crate::utils::obf_str;
 
 type FnGetStdHandle = unsafe extern "system" fn(u32) -> *mut c_void;
 type FnWriteFile =
@@ -167,23 +170,19 @@ pub unsafe extern "C" fn _main() {
     let write_file: FnWriteFile = core::mem::transmute(get_func_by_hash(kernel32, WRITEFILE_HASH));
     let std_out = get_std_handle(0xFFFFFFF5);
 
-    let hello_msg = [
-        b'H', b'e', b'l', b'l', b'o', b' ', b'w', b'o', b'r', b'l', b'd', b' ', b'!', b'\r', b'\n',
-    ];
+    let hello_msg = obf_str!(b"Hello world!\r\n");
     print_stdout(std_out, write_file, &hello_msg);
 
     let load_library: FnLoadLibraryA =
         core::mem::transmute(get_func_by_hash(kernel32, LOADLIBRARYA_HASH));
-    let user32_name = [
-        b'u', b's', b'e', b'r', b'3', b'2', b'.', b'd', b'l', b'l', b'\0',
-    ];
+    let user32_name = obf_str!(b"user32.dll\0");
 
     let user32 = load_library(user32_name.as_ptr());
     //let user32 = get_module_by_hash(USER32_HASH);
 
     let message_box: FnMessageBoxA =
         core::mem::transmute(get_func_by_hash(user32 as _, MESSAGEBOXAHASH));
-    let msg_title = [b'P', b'I', b'C', b'\0'];
-    let msg_body = [b'H', b'e', b'y', b'!', b'\0'];
+    let msg_title = obf_str!(b"PIC\0");
+    let msg_body = obf_str!(b"Hey!\0");
     message_box(ptr::null_mut(), msg_body.as_ptr(), msg_title.as_ptr(), 0);
 }
